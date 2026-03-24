@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAdminStore } from "@/lib/adminStore";
+import { AddPartModal } from "@/components/gallery/AddPartModal";
 import { App, AppPart, AppImage } from "@/types";
-import { Check, Download, Copy, X, ArrowLeft, Loader2 } from "lucide-react";
+import { Check, Download, Copy, X, ArrowLeft, Loader2, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function AppDetailPage({ params }: { params: { id: string } }) {
@@ -12,28 +14,24 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState(false);
+  const [showAddPart, setShowAddPart] = useState(false);
+  const { isAdmin } = useAdminStore();
 
-  // 파트별 슬라이더 ref
   const sliderRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const dragState = useRef<{ partId: string; startX: number; scrollLeft: number; moved: boolean } | null>(null);
 
-  useEffect(() => {
-    const fetch = async () => {
-      const { data: appData } = await supabase.from("apps").select("*").eq("id", params.id).single();
-      const { data: partsData } = await supabase.from("app_parts").select(`
-        *,
-        app_images(*)
-      `).eq("app_id", params.id).order("sort_order");
+  const fetchData = async () => {
+    const { data: appData } = await supabase.from("apps").select("*").eq("id", params.id).single();
+    const { data: partsData } = await supabase.from("app_parts").select(`*, app_images(*)`).eq("app_id", params.id).order("sort_order");
+    setApp(appData);
+    setParts((partsData || []).map((p: any) => ({
+      ...p,
+      app_images: (p.app_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+    })));
+    setLoading(false);
+  };
 
-      setApp(appData);
-      setParts((partsData || []).map((p: any) => ({
-        ...p,
-        app_images: (p.app_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
-      })));
-      setLoading(false);
-    };
-    fetch();
-  }, [params.id]);
+  useEffect(() => { fetchData(); }, [params.id]);
 
   const onMouseDown = (partId: string, e: React.MouseEvent) => {
     const el = sliderRefs.current.get(partId);
@@ -67,6 +65,37 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
       else next.add(img.id);
       return next;
     });
+  };
+
+  // 파트 삭제
+  const deletePart = async (partId: string) => {
+    if (!confirm("이 파트와 모든 이미지를 삭제할까요?")) return;
+    await supabase.from("app_parts").delete().eq("id", partId);
+    fetchData();
+  };
+
+  // 앱 삭제
+  const deleteApp = async () => {
+    if (!confirm(`"${app?.name}" 앱을 완전히 삭제할까요? 모든 파트와 이미지가 삭제돼요.`)) return;
+    await supabase.from("apps").delete().eq("id", params.id);
+    window.close();
+  };
+
+  // 파트 순서 변경
+  const movePart = async (partId: string, direction: "up" | "down") => {
+    const idx = parts.findIndex(p => p.id === partId);
+    if (direction === "up" && idx === 0) return;
+    if (direction === "down" && idx === parts.length - 1) return;
+
+    const newParts = [...parts];
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    [newParts[idx], newParts[swapIdx]] = [newParts[swapIdx], newParts[idx]];
+
+    setParts(newParts);
+
+    // DB 업데이트
+    await supabase.from("app_parts").update({ sort_order: swapIdx }).eq("id", newParts[swapIdx].id);
+    await supabase.from("app_parts").update({ sort_order: idx }).eq("id", newParts[idx].id);
   };
 
   const allImages = parts.flatMap(p => p.app_images || []);
@@ -151,6 +180,24 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
               <p className="text-[11px] text-ink-500 font-mono">{app.category} · {parts.length}개 파트 · {allImages.length}개 화면</p>
             </div>
           </div>
+
+          {/* 관리자 버튼 */}
+          {isAdmin && (
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() => setShowAddPart(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-ink-700 text-ink-300 hover:border-acid hover:text-acid rounded-lg transition-all"
+              >
+                <Plus size={12} /> 파트 추가
+              </button>
+              <button
+                onClick={deleteApp}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-coral/30 text-coral/70 hover:border-coral hover:text-coral rounded-lg transition-all"
+              >
+                <Trash2 size={12} /> 앱 삭제
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -158,12 +205,36 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
       <main className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col gap-10">
         {app.description && <p className="text-ink-400 text-sm max-w-xl -mt-4">{app.description}</p>}
 
-        {parts.map((part) => (
+        {parts.map((part, pi) => (
           <section key={part.id}>
             {/* 파트 타이틀 */}
-            <h2 className="font-bold text-ink-100 mb-4" style={{ fontSize: "18px" }}>
-              {part.part_name}
-            </h2>
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="font-bold text-ink-100" style={{ fontSize: "18px" }}>
+                {part.part_name}
+              </h2>
+              <span className="text-xs font-mono text-ink-600">{(part.app_images || []).length}장</span>
+
+              {/* 관리자 파트 컨트롤 */}
+              {isAdmin && (
+                <div className="flex items-center gap-1 ml-auto">
+                  <button onClick={() => movePart(part.id, "up")} disabled={pi === 0}
+                    className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button onClick={() => movePart(part.id, "down")} disabled={pi === parts.length - 1}
+                    className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                  <button onClick={() => deletePart(part.id)}
+                    className="p-1 text-ink-600 hover:text-coral transition-colors ml-1"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* 가로 슬라이더 */}
             <div
@@ -189,14 +260,9 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
                     style={{ width: "160px" }}
                   >
                     <img src={img.image_url} alt="" className="w-full object-cover" draggable={false} />
-
-                    {/* 체크박스 */}
                     <div
                       onClick={e => { e.stopPropagation(); toggleSelect(img); }}
-                      className={cn(
-                        "absolute top-2 right-2 transition-all",
-                        selected ? "opacity-100" : "opacity-0 hover:opacity-100"
-                      )}
+                      className={cn("absolute top-2 right-2 transition-all", selected ? "opacity-100" : "opacity-0 hover:opacity-100")}
                     >
                       <div className={cn(
                         "w-5 h-5 rounded-md border-2 flex items-center justify-center",
@@ -243,6 +309,17 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* 파트 추가 모달 */}
+      {showAddPart && app && (
+        <AddPartModal
+          appId={app.id}
+          appName={app.name}
+          currentPartCount={parts.length}
+          onClose={() => setShowAddPart(false)}
+          onSuccess={fetchData}
+        />
       )}
     </div>
   );
