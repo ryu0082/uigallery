@@ -11,10 +11,10 @@ interface AppCardProps {
 
 export function AppCard({ app }: AppCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const imageCount = (app as any).image_count || 0;
   const thumbnail = (app as any).thumbnail || null;
-  const dominantColors: string[] = (app as any).dominant_colors || [];
-  const displayCategory = (app as any).store_category || (app as any).genre || app.category || "";
+  const displayCategory = (app as any).store_category
+    ? mapItunesGenre((app as any).store_category)
+    : (app as any).genre || app.category || "";
 
   return (
     <div
@@ -43,7 +43,7 @@ export function AppCard({ app }: AppCardProps) {
           <h3 className="font-bold text-[#f0f0f0] truncate leading-tight" style={{ fontSize: "18px" }}>
             {app.name}
           </h3>
-          <p className="text-xs text-[#999999] mt-0.5 truncate">
+          <p className="text-sm text-[#999999] mt-0.5 truncate">
             {displayCategory}
           </p>
         </div>
@@ -69,27 +69,21 @@ export function AppCard({ app }: AppCardProps) {
             <Images size={32} className="text-[#3d3d3d]" />
           </div>
         )}
-
-        {imageCount > 0 && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 bg-[#0a0a0a]/80 backdrop-blur-sm border border-[#2a2a2a] rounded-md text-[10px] font-mono text-[#b8b8b8]">
-            {imageCount}장
-          </div>
-        )}
+        {/* 이미지 갯수 배지 제거됨 */}
+        {/* 컬러 스와치 제거됨 - 사이드바 필터로 이동 */}
       </div>
-
-      {/* 색상 스와치 */}
-      {dominantColors.length > 0 && (
-        <div className="px-4 py-2.5 flex items-center gap-1.5 border-t border-[#2a2a2a]">
-          {dominantColors.slice(0, 6).map((color, i) => (
-            <div
-              key={i}
-              className="w-4 h-4 rounded-full border border-[#3d3d3d] shrink-0"
-              style={{ backgroundColor: color }}
-              title={color}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
+}
+
+// iTunes 카테고리 → 한글 매핑 (AppCard에서도 사용)
+function mapItunesGenre(itunesGenre: string): string {
+  const map: Record<string, string> = {
+    "Games": "게임", "Finance": "금융/핀테크", "Shopping": "커머스/쇼핑",
+    "Social Networking": "소셜/커뮤니티", "Health & Fitness": "헬스/피트니스",
+    "Travel": "여행/지도", "Food & Drink": "음식/배달", "Education": "교육",
+    "Entertainment": "엔터테인먼트", "Utilities": "유틸리티", "Lifestyle": "유틸리티",
+    "Sports": "스포츠", "Business": "금융/핀테크", "Productivity": "유틸리티",
+  };
+  return map[itunesGenre] || itunesGenre;
 }

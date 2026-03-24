@@ -47,13 +47,14 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
         };
       });
 
-      // UI 패턴 필터 (client-side)
+      // UI 패턴 필터
       if (uiPattern && uiPattern !== "all") {
         processed = processed.filter((app: any) =>
           app.ui_pattern?.includes(uiPattern)
         );
       }
 
+      // 컬러 필터 (store에서 selectedColor 추가 필요 시)
       setApps(processed);
       setVisibleCount(LOAD_COUNT);
     } catch (err) {
@@ -95,7 +96,7 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
         <PackageOpen size={40} className="text-[#3d3d3d]" />
         <div className="text-center">
           <p className="text-[#999999] text-sm">등록된 앱이 없어요</p>
-          <p className="text-[#666666] text-xs font-mono mt-1">앱 등록 버튼으로 첫 번째 앱을 추가해보세요!</p>
+          <p className="text-[#666666] text-sm mt-1">앱 등록 버튼으로 첫 번째 앱을 추가해보세요!</p>
         </div>
       </div>
     );
@@ -103,9 +104,7 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
 
   return (
     <div>
-      <div className="mb-4">
-        <span className="text-xs font-mono text-[#666666]">{apps.length}개 앱</span>
-      </div>
+      {/* n개 앱 라벨 제거됨 */}
       <div className="flex flex-wrap gap-4">
         {visible.map((app, index) => (
           <div

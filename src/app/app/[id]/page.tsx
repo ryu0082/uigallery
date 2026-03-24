@@ -22,7 +22,9 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
 
   const fetchData = async () => {
     const { data: appData } = await supabase.from("apps").select("*").eq("id", params.id).single();
-    const { data: partsData } = await supabase.from("app_parts").select(`*, app_images(*)`).eq("app_id", params.id).order("sort_order");
+    const { data: partsData } = await supabase
+      .from("app_parts").select(`*, app_images(*)`)
+      .eq("app_id", params.id).order("sort_order");
     setApp(appData);
     setParts((partsData || []).map((p: any) => ({
       ...p,
@@ -39,7 +41,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
     dragState.current = { partId, startX: e.pageX - el.offsetLeft, scrollLeft: el.scrollLeft, moved: false };
     el.style.cursor = "grabbing";
   };
-
   const onMouseMove = (partId: string, e: React.MouseEvent) => {
     if (!dragState.current || dragState.current.partId !== partId) return;
     const el = sliderRefs.current.get(partId);
@@ -50,7 +51,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
     if (Math.abs(walk) > 5) dragState.current.moved = true;
     el.scrollLeft = dragState.current.scrollLeft - walk;
   };
-
   const onMouseUp = (partId: string) => {
     const el = sliderRefs.current.get(partId);
     if (el) el.style.cursor = "grab";
@@ -143,80 +143,116 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-ink-950 flex items-center justify-center">
-      <Loader2 size={24} className="text-acid animate-spin" />
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <Loader2 size={24} className="text-[#c8ff00] animate-spin" />
     </div>
   );
 
   if (!app) return (
-    <div className="min-h-screen bg-ink-950 flex items-center justify-center">
-      <p className="text-ink-400">앱을 찾을 수 없어요.</p>
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <p className="text-[#999999]">앱을 찾을 수 없어요.</p>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-ink-950 text-ink-100">
-      <header className="sticky top-0 z-40 border-b border-ink-800 bg-ink-950/90 backdrop-blur-xl">
-        <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center gap-4">
-          <button onClick={() => window.close()} className="flex items-center gap-2 text-ink-400 hover:text-ink-100 transition-colors">
+    <div className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0]">
+      {/* 헤더 - 높이 늘림 (#8) */}
+      <header className="sticky top-0 z-40 border-b border-[#2a2a2a] bg-[#0a0a0a]/90 backdrop-blur-xl">
+        <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center gap-4">
+          <button onClick={() => window.close()} className="flex items-center gap-2 text-[#999999] hover:text-[#f0f0f0] transition-colors">
             <ArrowLeft size={16} />
             <span className="text-sm">닫기</span>
           </button>
+
           <div className="flex items-center gap-3 ml-2">
             {app.icon_url
-              ? <img src={app.icon_url} alt={app.name} className="rounded-xl object-cover border border-ink-700" style={{ width: "50px", height: "50px" }} />
-              : <div className="rounded-xl bg-ink-700 flex items-center justify-center" style={{ width: "50px", height: "50px" }}><span className="text-lg font-bold text-ink-300">{app.name[0]}</span></div>
+              ? <img src={app.icon_url} alt={app.name} className="rounded-xl object-cover border border-[#2a2a2a]" style={{ width: "50px", height: "50px" }} />
+              : <div className="rounded-xl bg-[#2a2a2a] flex items-center justify-center" style={{ width: "50px", height: "50px" }}><span className="text-lg font-bold text-[#666666]">{app.name[0]}</span></div>
             }
             <div>
-              <h1 className="font-bold text-ink-100" style={{ fontSize: "18px" }}>{app.name}</h1>
-              <p className="text-[11px] text-ink-500 font-mono">
-                {(app as any).store_category || app.category} · {parts.length}개 파트 · {allImages.length}개 화면
+              {/* 앱 이름 bold 18px */}
+              <h1 className="font-bold text-[#f0f0f0]" style={{ fontSize: "18px" }}>{app.name}</h1>
+              {/* 최소 폰트 14px (#8) */}
+              <p className="text-sm text-[#666666] mt-0.5">
+                {(app as any).store_category || (app as any).genre || app.category}
+                {" · "}{parts.length}개 파트 · {allImages.length}개 화면
               </p>
             </div>
           </div>
 
+          {/* 관리자 버튼 - 크기 키움 (#8) */}
           {isAdmin && (
             <div className="ml-auto flex items-center gap-2">
-              <button onClick={() => setShowAddPart(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-ink-700 text-ink-300 hover:border-acid hover:text-acid rounded-lg transition-all"
+              <button
+                onClick={() => setShowAddPart(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm border border-[#3d3d3d] text-[#b8b8b8] hover:border-[#c8ff00] hover:text-[#c8ff00] rounded-lg transition-all"
               >
-                <Plus size={12} /> 파트 추가
+                <Plus size={16} /> 파트 추가
               </button>
-              <button onClick={deleteApp}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-coral/30 text-coral/70 hover:border-coral hover:text-coral rounded-lg transition-all"
+              <button
+                onClick={deleteApp}
+                className="flex items-center gap-2 px-4 py-2 text-sm border border-[#ff4d3d]/30 text-[#ff4d3d]/70 hover:border-[#ff4d3d] hover:text-[#ff4d3d] rounded-lg transition-all"
               >
-                <Trash2 size={12} /> 앱 삭제
+                <Trash2 size={16} /> 앱 삭제
               </button>
             </div>
           )}
         </div>
       </header>
 
+      {/* 파트 섹션 */}
       <main className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col gap-10">
-        {app.description && <p className="text-ink-400 text-sm max-w-xl -mt-4">{app.description}</p>}
-
         {parts.map((part, pi) => (
           <section key={part.id}>
+            {/* 파트 타이틀 */}
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-bold text-ink-100" style={{ fontSize: "18px" }}>{part.part_name}</h2>
-              <span className="text-xs font-mono text-ink-600">{(part.app_images || []).length}장</span>
+              {/* 파트명 bold 18px - n장 텍스트 제거 (#7) */}
+              <h2 className="font-bold text-[#f0f0f0]" style={{ fontSize: "18px" }}>{part.part_name}</h2>
+
+              {/* 관리자 파트 컨트롤 - border 추가, 아이콘 18px (#9) */}
               {isAdmin && (
-                <div className="flex items-center gap-1 ml-auto">
-                  <button onClick={() => movePart(part.id, "up")} disabled={pi === 0} className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"><ChevronUp size={14} /></button>
-                  <button onClick={() => movePart(part.id, "down")} disabled={pi === parts.length - 1} className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"><ChevronDown size={14} /></button>
-                  <button onClick={() => deletePart(part.id)} className="p-1 text-ink-600 hover:text-coral transition-colors ml-1"><Trash2 size={13} /></button>
+                <div className="flex items-center gap-2 ml-auto">
+                  <button
+                    onClick={() => movePart(part.id, "up")}
+                    disabled={pi === 0}
+                    className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#b8b8b8] hover:border-[#555555] disabled:opacity-20 transition-all rounded-md"
+                  >
+                    <ChevronUp size={18} />
+                  </button>
+                  <button
+                    onClick={() => movePart(part.id, "down")}
+                    disabled={pi === parts.length - 1}
+                    className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#b8b8b8] hover:border-[#555555] disabled:opacity-20 transition-all rounded-md"
+                  >
+                    <ChevronDown size={18} />
+                  </button>
+                  <button
+                    onClick={() => deletePart(part.id)}
+                    className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#ff4d3d] hover:border-[#ff4d3d]/50 transition-all rounded-md"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               )}
             </div>
 
+            {/* 가로 슬라이더 - overflow-y: visible로 hover 잘림 방지 (#10) */}
             <div
               ref={el => { if (el) sliderRefs.current.set(part.id, el); }}
               onMouseDown={e => onMouseDown(part.id, e)}
               onMouseMove={e => onMouseMove(part.id, e)}
               onMouseUp={() => onMouseUp(part.id)}
               onMouseLeave={() => onMouseUp(part.id)}
-              className="flex gap-4 overflow-x-auto pb-3 select-none"
-              style={{ cursor: "grab", scrollbarWidth: "none", msOverflowStyle: "none" }}
+              className="flex gap-4 select-none"
+              style={{
+                cursor: "grab",
+                overflowX: "auto",
+                overflowY: "visible",  /* hover 시 위쪽 잘림 방지 (#10) */
+                paddingBottom: "12px",
+                paddingTop: "8px",     /* hover 올라가는 공간 확보 */
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
             >
               {(part.app_images || []).map(img => {
                 const selected = selectedIds.has(img.id);
@@ -225,9 +261,9 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
                     key={img.id}
                     onClick={() => toggleSelect(img)}
                     className={cn(
-                      "shrink-0 relative rounded-xl overflow-hidden bg-ink-800 cursor-pointer transition-all duration-200",
-                      "hover:-translate-y-1.5 hover:shadow-xl hover:shadow-ink-950/60",
-                      selected && "ring-2 ring-acid ring-offset-2 ring-offset-ink-950"
+                      "shrink-0 relative rounded-xl overflow-hidden bg-[#1c1c1c] cursor-pointer transition-all duration-200",
+                      "hover:-translate-y-2 hover:shadow-xl hover:shadow-black/60",
+                      selected && "ring-2 ring-[#c8ff00] ring-offset-2 ring-offset-[#0a0a0a]"
                     )}
                     style={{ width: "300px" }}
                   >
@@ -238,9 +274,9 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
                     >
                       <div className={cn(
                         "w-6 h-6 rounded-md border-2 flex items-center justify-center",
-                        selected ? "bg-acid border-acid" : "bg-ink-950/70 border-ink-400 backdrop-blur-sm"
+                        selected ? "bg-[#c8ff00] border-[#c8ff00]" : "bg-[#0a0a0a]/70 border-[#999999] backdrop-blur-sm"
                       )}>
-                        {selected && <Check size={11} className="text-ink-950" strokeWidth={3} />}
+                        {selected && <Check size={11} className="text-[#0a0a0a]" strokeWidth={3} />}
                       </div>
                     </div>
                   </div>
@@ -251,31 +287,32 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
         ))}
       </main>
 
+      {/* 하단 선택 바 */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-up">
-          <div className="flex items-center gap-3 bg-ink-800 border border-ink-600 rounded-2xl px-5 py-3 shadow-2xl">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <div className="flex items-center gap-3 bg-[#1c1c1c] border border-[#3d3d3d] rounded-2xl px-5 py-3 shadow-2xl">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-acid rounded-md flex items-center justify-center">
-                <Check size={13} className="text-ink-950" strokeWidth={2.5} />
+              <div className="w-6 h-6 bg-[#c8ff00] rounded-md flex items-center justify-center">
+                <Check size={13} className="text-[#0a0a0a]" strokeWidth={2.5} />
               </div>
-              <span className="text-sm font-mono">
-                <span className="text-acid font-bold">{selectedIds.size}</span>
-                <span className="text-ink-500"> 선택됨</span>
+              <span className="text-sm">
+                <span className="text-[#c8ff00] font-bold">{selectedIds.size}</span>
+                <span className="text-[#666666]"> 선택됨</span>
               </span>
             </div>
-            <div className="w-px h-4 bg-ink-700" />
-            <button onClick={handleCopy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono text-ink-300 hover:text-acid hover:bg-ink-700 transition-all">
-              <Copy size={12} />
+            <div className="w-px h-4 bg-[#3d3d3d]" />
+            <button onClick={handleCopy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-[#b8b8b8] hover:text-[#c8ff00] hover:bg-[#2a2a2a] transition-all">
+              <Copy size={14} />
               {selectedIds.size === 1 ? "이미지 복사" : "URL 복사"}
             </button>
             <button onClick={handleDownload} disabled={downloading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono bg-acid text-ink-950 hover:bg-acid/90 transition-all font-medium"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-[#c8ff00] text-[#0a0a0a] hover:bg-[#c8ff00]/90 transition-all font-bold"
             >
-              {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+              {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
               JPG 다운로드
             </button>
-            <div className="w-px h-4 bg-ink-700" />
-            <button onClick={() => setSelectedIds(new Set())} className="text-ink-500 hover:text-ink-300 transition-colors">
+            <div className="w-px h-4 bg-[#3d3d3d]" />
+            <button onClick={() => setSelectedIds(new Set())} className="text-[#666666] hover:text-[#b8b8b8] transition-colors">
               <X size={15} />
             </button>
           </div>

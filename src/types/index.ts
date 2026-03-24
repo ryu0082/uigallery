@@ -35,7 +35,6 @@ export interface AppImage {
   created_at: string;
 }
 
-// 앱 장르
 export type Genre =
   | "all"
   | "게임"
@@ -51,14 +50,6 @@ export type Genre =
   | "뷰티/패션"
   | "부동산"
   | "스포츠";
-
-// UI 패턴 (멀티셀렉)
-export const UI_PATTERNS = [
-  "온보딩", "로그인/회원가입", "홈/메인", "검색",
-  "상세페이지", "목록/피드", "마이페이지", "설정",
-  "결제/구매", "채팅/메시지", "알림", "대시보드",
-  "프로필", "지도", "카메라/미디어",
-];
 
 export const GENRES: { id: Genre; label: string }[] = [
   { id: "all", label: "전체" },
@@ -77,7 +68,26 @@ export const GENRES: { id: Genre; label: string }[] = [
   { id: "유틸리티", label: "유틸리티" },
 ];
 
-// 기존 호환용 (사용 안 함)
+// 사이드바 필터 + 파트명 드롭다운 동일하게 사용
+export const UI_PATTERNS = [
+  "온보딩",
+  "스플래시",
+  "로그인/회원가입",
+  "홈/메인",
+  "검색",
+  "상세페이지",
+  "목록/피드",
+  "마이페이지",
+  "설정",
+  "결제/구매",
+  "채팅/메시지",
+  "알림",
+  "대시보드",
+  "프로필",
+  "지도",
+  "카메라/미디어",
+];
+
 export type Category = "all" | string;
 
 export interface FilterState {

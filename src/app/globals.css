@@ -26,10 +26,13 @@ body, * {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 모노 폰트도 Pretendard로 통일 */
-code, pre, kbd, .font-mono {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
-  letter-spacing: -0.01em;
+/* border-radius가 focus 시 변하지 않도록 고정 (#6) */
+input, select, textarea, button {
+  border-radius: inherit;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-radius: inherit !important;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -38,7 +41,6 @@ code, pre, kbd, .font-mono {
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-400); }
 
 ::selection { background: var(--acid); color: var(--ink-950); }
-:focus-visible { outline: 2px solid var(--acid); outline-offset: 2px; border-radius: 2px; }
 
 .skeleton {
   background: linear-gradient(90deg, var(--ink-800) 0%, var(--ink-700) 50%, var(--ink-800) 100%);
