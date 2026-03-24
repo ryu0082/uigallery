@@ -1,43 +1,27 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, DM_Sans, DM_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const dmSerifDisplay = DM_Serif_Display({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-editorial",
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
   variable: "--font-mono",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "UIVault — Design Reference Gallery",
-  description: "Curated UI/UX design references for modern web interfaces.",
+  title: "UIVault — 디자인 레퍼런스 갤러리",
+  description: "UI/UX 디자이너를 위한 모바일 앱 레퍼런스 갤러리",
   openGraph: {
     title: "UIVault",
-    description: "Curated UI reference gallery",
+    description: "UI/UX 디자인 레퍼런스 갤러리",
     type: "website",
   },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${dmSerifDisplay.variable} ${dmSans.variable} ${dmMono.variable} bg-ink-950 text-ink-100 font-body antialiased`}
-      >
+    <html lang="ko" suppressHydrationWarning>
+      <body className={`${jetbrainsMono.variable} bg-[#0a0a0a] text-[#f0f0f0] antialiased`}>
         {children}
       </body>
     </html>

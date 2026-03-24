@@ -1,26 +1,28 @@
 import { create } from "zustand";
-import { FilterState, SelectionState, Category } from "@/types";
+import { FilterState, SelectionState, Genre } from "@/types";
 
 interface GalleryStore extends FilterState, SelectionState {
-  setCategory: (category: Category) => void;
+  setGenre: (genre: Genre) => void;
+  setUiPattern: (pattern: string) => void;
   setSearchQuery: (query: string) => void;
   setSortBy: (sort: FilterState["sortBy"]) => void;
   setLayout: (layout: FilterState["layout"]) => void;
   toggleImageSelection: (id: string) => void;
-  selectAllImages: (ids: string[]) => void;
   clearSelection: () => void;
   setIsSelecting: (v: boolean) => void;
 }
 
 export const useGalleryStore = create<GalleryStore>((set) => ({
-  category: "all",
+  genre: "all",
+  uiPattern: "all",
   searchQuery: "",
   sortBy: "latest",
-  layout: "masonry",
+  layout: "grid",
   selectedImageIds: new Set<string>(),
   isSelecting: false,
 
-  setCategory: (category) => set({ category }),
+  setGenre: (genre) => set({ genre }),
+  setUiPattern: (uiPattern) => set({ uiPattern }),
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSortBy: (sortBy) => set({ sortBy }),
   setLayout: (layout) => set({ layout }),
@@ -31,7 +33,6 @@ export const useGalleryStore = create<GalleryStore>((set) => ({
       else next.add(id);
       return { selectedImageIds: next };
     }),
-  selectAllImages: (ids) => set({ selectedImageIds: new Set(ids) }),
   clearSelection: () => set({ selectedImageIds: new Set(), isSelecting: false }),
   setIsSelecting: (isSelecting) => set({ isSelecting }),
 }));

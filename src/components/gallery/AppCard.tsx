@@ -12,16 +12,14 @@ interface AppCardProps {
 export function AppCard({ app }: AppCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const imageCount = (app as any).image_count || 0;
-  const partCount = (app as any).part_count || 0;
   const thumbnail = (app as any).thumbnail || null;
-
-  // iTunes에서 가져온 카테고리 or 등록된 카테고리
-  const displayCategory = (app as any).store_category || app.category || "";
+  const dominantColors: string[] = (app as any).dominant_colors || [];
+  const displayCategory = (app as any).store_category || (app as any).genre || app.category || "";
 
   return (
     <div
       onClick={() => window.open(`/app/${app.id}`, "_blank")}
-      className="group rounded-2xl overflow-hidden bg-ink-800 card-lift cursor-pointer border border-ink-700/50 hover:border-ink-600 transition-all"
+      className="group rounded-2xl overflow-hidden bg-[#1c1c1c] cursor-pointer border border-[#2a2a2a] hover:border-[#3d3d3d] transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/40"
       style={{ width: "300px" }}
     >
       {/* 앱 정보 (위) */}
@@ -30,58 +28,68 @@ export function AppCard({ app }: AppCardProps) {
           <img
             src={app.icon_url}
             alt={app.name}
-            className="rounded-xl object-cover shrink-0 border border-ink-700"
+            className="rounded-xl object-cover shrink-0 border border-[#2a2a2a]"
             style={{ width: "50px", height: "50px" }}
           />
         ) : (
           <div
-            className="rounded-xl bg-ink-700 border border-ink-600 flex items-center justify-center shrink-0"
+            className="rounded-xl bg-[#2a2a2a] border border-[#3d3d3d] flex items-center justify-center shrink-0"
             style={{ width: "50px", height: "50px" }}
           >
-            <span className="text-lg font-bold text-ink-400">{app.name[0]}</span>
+            <span className="text-lg font-bold text-[#666666]">{app.name[0]}</span>
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <h3 className="font-bold text-ink-100 truncate leading-tight" style={{ fontSize: "18px" }}>
+          <h3 className="font-bold text-[#f0f0f0] truncate leading-tight" style={{ fontSize: "18px" }}>
             {app.name}
           </h3>
-          <p className="text-xs text-ink-500 mt-0.5 truncate">
+          <p className="text-xs text-[#999999] mt-0.5 truncate">
             {displayCategory}
           </p>
         </div>
       </div>
 
-      {/* 썸네일 (아래) */}
-      <div className="relative w-full overflow-hidden bg-ink-700">
+      {/* 썸네일 */}
+      <div className="relative w-full overflow-hidden bg-[#2a2a2a]">
         {thumbnail ? (
           <>
-            {!imageLoaded && <div className="skeleton absolute inset-0" style={{ paddingBottom: "75%" }} />}
+            {!imageLoaded && <div className="skeleton absolute inset-0 aspect-[4/3]" />}
             <img
               src={thumbnail}
               alt={app.name}
               className={cn(
-                "w-full object-cover transition-all duration-500 group-hover:scale-[1.02]",
+                "w-full object-cover transition-all duration-500 group-hover:scale-[1.01]",
                 imageLoaded ? "opacity-100" : "opacity-0"
               )}
               onLoad={() => setImageLoaded(true)}
             />
           </>
         ) : (
-          <div className="w-full aspect-[4/3] flex items-center justify-center bg-ink-700">
-            <Images size={32} className="text-ink-600" />
+          <div className="w-full aspect-[4/3] flex items-center justify-center">
+            <Images size={32} className="text-[#3d3d3d]" />
           </div>
         )}
 
-        {/* 이미지 갯수 배지 */}
         {imageCount > 0 && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 bg-ink-950/80 backdrop-blur-sm border border-ink-700 rounded-md text-[10px] font-mono text-ink-300">
+          <div className="absolute top-2 right-2 px-2 py-0.5 bg-[#0a0a0a]/80 backdrop-blur-sm border border-[#2a2a2a] rounded-md text-[10px] font-mono text-[#b8b8b8]">
             {imageCount}장
           </div>
         )}
-
-        {/* 호버 오버레이 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
       </div>
+
+      {/* 색상 스와치 */}
+      {dominantColors.length > 0 && (
+        <div className="px-4 py-2.5 flex items-center gap-1.5 border-t border-[#2a2a2a]">
+          {dominantColors.slice(0, 6).map((color, i) => (
+            <div
+              key={i}
+              className="w-4 h-4 rounded-full border border-[#3d3d3d] shrink-0"
+              style={{ backgroundColor: color }}
+              title={color}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
