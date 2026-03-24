@@ -2,18 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Pretendard 폰트 */
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
-
 :root {
-  --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
-
-  --acid: #c8ff00;
-  --coral: #ff4d3d;
-  --sky: #4daaff;
-
-  /* 개선된 그레이스케일 - 더 높은 대비 */
   --ink-950: #0a0a0a;
   --ink-900: #111111;
   --ink-800: #1c1c1c;
@@ -24,20 +13,25 @@
   --ink-300: #b8b8b8;
   --ink-200: #d4d4d4;
   --ink-100: #f0f0f0;
+  --acid: #c8ff00;
+  --coral: #ff4d3d;
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
-body {
-  background-color: var(--ink-950);
-  color: var(--ink-100);
-  font-family: var(--font-body);
+body, * {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 스크롤바 */
+/* 모노 폰트도 Pretendard로 통일 */
+code, pre, kbd, .font-mono {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--ink-900); }
 ::-webkit-scrollbar-thumb { background: var(--ink-600); border-radius: 2px; }
@@ -46,7 +40,6 @@ body {
 ::selection { background: var(--acid); color: var(--ink-950); }
 :focus-visible { outline: 2px solid var(--acid); outline-offset: 2px; border-radius: 2px; }
 
-/* 스켈레톤 */
 .skeleton {
   background: linear-gradient(90deg, var(--ink-800) 0%, var(--ink-700) 50%, var(--ink-800) 100%);
   background-size: 1000px 100%;
@@ -58,16 +51,14 @@ body {
   100% { background-position: 1000px 0; }
 }
 
-/* 카드 호버 */
 .card-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .card-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 
-/* 페이드 애니메이션 */
 @keyframes fadeUp {
   0% { opacity: 0; transform: translateY(16px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -79,7 +70,3 @@ body {
 
 .animate-fade-up { animation: fadeUp 0.5s ease forwards; }
 .animate-fade-in { animation: fadeIn 0.3s ease forwards; }
-
-/* 스크롤바 숨기기 */
-.hide-scrollbar::-webkit-scrollbar { display: none; }
-.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
