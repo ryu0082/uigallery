@@ -67,33 +67,26 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
     });
   };
 
-  // 파트 삭제
   const deletePart = async (partId: string) => {
     if (!confirm("이 파트와 모든 이미지를 삭제할까요?")) return;
     await supabase.from("app_parts").delete().eq("id", partId);
     fetchData();
   };
 
-  // 앱 삭제
   const deleteApp = async () => {
-    if (!confirm(`"${app?.name}" 앱을 완전히 삭제할까요? 모든 파트와 이미지가 삭제돼요.`)) return;
+    if (!confirm(`"${app?.name}" 앱을 완전히 삭제할까요?`)) return;
     await supabase.from("apps").delete().eq("id", params.id);
     window.close();
   };
 
-  // 파트 순서 변경
   const movePart = async (partId: string, direction: "up" | "down") => {
     const idx = parts.findIndex(p => p.id === partId);
     if (direction === "up" && idx === 0) return;
     if (direction === "down" && idx === parts.length - 1) return;
-
     const newParts = [...parts];
     const swapIdx = direction === "up" ? idx - 1 : idx + 1;
     [newParts[idx], newParts[swapIdx]] = [newParts[swapIdx], newParts[idx]];
-
     setParts(newParts);
-
-    // DB 업데이트
     await supabase.from("app_parts").update({ sort_order: swapIdx }).eq("id", newParts[swapIdx].id);
     await supabase.from("app_parts").update({ sort_order: idx }).eq("id", newParts[idx].id);
   };
@@ -163,7 +156,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen bg-ink-950 text-ink-100">
-      {/* 헤더 */}
       <header className="sticky top-0 z-40 border-b border-ink-800 bg-ink-950/90 backdrop-blur-xl">
         <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center gap-4">
           <button onClick={() => window.close()} className="flex items-center gap-2 text-ink-400 hover:text-ink-100 transition-colors">
@@ -172,26 +164,25 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
           </button>
           <div className="flex items-center gap-3 ml-2">
             {app.icon_url
-              ? <img src={app.icon_url} alt={app.name} className="w-9 h-9 rounded-xl object-cover border border-ink-700" />
-              : <div className="w-9 h-9 rounded-xl bg-ink-700 flex items-center justify-center"><span className="text-sm font-bold text-ink-300">{app.name[0]}</span></div>
+              ? <img src={app.icon_url} alt={app.name} className="rounded-xl object-cover border border-ink-700" style={{ width: "50px", height: "50px" }} />
+              : <div className="rounded-xl bg-ink-700 flex items-center justify-center" style={{ width: "50px", height: "50px" }}><span className="text-lg font-bold text-ink-300">{app.name[0]}</span></div>
             }
             <div>
-              <h1 className="font-display text-base text-ink-100">{app.name}</h1>
-              <p className="text-[11px] text-ink-500 font-mono">{app.category} · {parts.length}개 파트 · {allImages.length}개 화면</p>
+              <h1 className="font-bold text-ink-100" style={{ fontSize: "18px" }}>{app.name}</h1>
+              <p className="text-[11px] text-ink-500 font-mono">
+                {(app as any).store_category || app.category} · {parts.length}개 파트 · {allImages.length}개 화면
+              </p>
             </div>
           </div>
 
-          {/* 관리자 버튼 */}
           {isAdmin && (
             <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={() => setShowAddPart(true)}
+              <button onClick={() => setShowAddPart(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-ink-700 text-ink-300 hover:border-acid hover:text-acid rounded-lg transition-all"
               >
                 <Plus size={12} /> 파트 추가
               </button>
-              <button
-                onClick={deleteApp}
+              <button onClick={deleteApp}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono border border-coral/30 text-coral/70 hover:border-coral hover:text-coral rounded-lg transition-all"
               >
                 <Trash2 size={12} /> 앱 삭제
@@ -201,42 +192,23 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
         </div>
       </header>
 
-      {/* 파트 섹션들 */}
       <main className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col gap-10">
         {app.description && <p className="text-ink-400 text-sm max-w-xl -mt-4">{app.description}</p>}
 
         {parts.map((part, pi) => (
           <section key={part.id}>
-            {/* 파트 타이틀 */}
             <div className="flex items-center gap-3 mb-4">
-              <h2 className="font-bold text-ink-100" style={{ fontSize: "18px" }}>
-                {part.part_name}
-              </h2>
+              <h2 className="font-bold text-ink-100" style={{ fontSize: "18px" }}>{part.part_name}</h2>
               <span className="text-xs font-mono text-ink-600">{(part.app_images || []).length}장</span>
-
-              {/* 관리자 파트 컨트롤 */}
               {isAdmin && (
                 <div className="flex items-center gap-1 ml-auto">
-                  <button onClick={() => movePart(part.id, "up")} disabled={pi === 0}
-                    className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"
-                  >
-                    <ChevronUp size={14} />
-                  </button>
-                  <button onClick={() => movePart(part.id, "down")} disabled={pi === parts.length - 1}
-                    className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"
-                  >
-                    <ChevronDown size={14} />
-                  </button>
-                  <button onClick={() => deletePart(part.id)}
-                    className="p-1 text-ink-600 hover:text-coral transition-colors ml-1"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  <button onClick={() => movePart(part.id, "up")} disabled={pi === 0} className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"><ChevronUp size={14} /></button>
+                  <button onClick={() => movePart(part.id, "down")} disabled={pi === parts.length - 1} className="p-1 text-ink-600 hover:text-acid disabled:opacity-20 transition-colors"><ChevronDown size={14} /></button>
+                  <button onClick={() => deletePart(part.id)} className="p-1 text-ink-600 hover:text-coral transition-colors ml-1"><Trash2 size={13} /></button>
                 </div>
               )}
             </div>
 
-            {/* 가로 슬라이더 */}
             <div
               ref={el => { if (el) sliderRefs.current.set(part.id, el); }}
               onMouseDown={e => onMouseDown(part.id, e)}
@@ -257,7 +229,7 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
                       "hover:-translate-y-1.5 hover:shadow-xl hover:shadow-ink-950/60",
                       selected && "ring-2 ring-acid ring-offset-2 ring-offset-ink-950"
                     )}
-                    style={{ width: "160px" }}
+                    style={{ width: "300px" }}
                   >
                     <img src={img.image_url} alt="" className="w-full object-cover" draggable={false} />
                     <div
@@ -265,10 +237,10 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
                       className={cn("absolute top-2 right-2 transition-all", selected ? "opacity-100" : "opacity-0 hover:opacity-100")}
                     >
                       <div className={cn(
-                        "w-5 h-5 rounded-md border-2 flex items-center justify-center",
+                        "w-6 h-6 rounded-md border-2 flex items-center justify-center",
                         selected ? "bg-acid border-acid" : "bg-ink-950/70 border-ink-400 backdrop-blur-sm"
                       )}>
-                        {selected && <Check size={10} className="text-ink-950" strokeWidth={3} />}
+                        {selected && <Check size={11} className="text-ink-950" strokeWidth={3} />}
                       </div>
                     </div>
                   </div>
@@ -279,7 +251,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
         ))}
       </main>
 
-      {/* 하단 선택 바 */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-up">
           <div className="flex items-center gap-3 bg-ink-800 border border-ink-600 rounded-2xl px-5 py-3 shadow-2xl">
@@ -311,7 +282,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      {/* 파트 추가 모달 */}
       {showAddPart && app && (
         <AddPartModal
           appId={app.id}

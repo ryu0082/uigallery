@@ -4,14 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useGalleryStore } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { AppCard } from "./AppCard";
-import { cn } from "@/lib/utils";
 import { PackageOpen } from "lucide-react";
 import { App } from "@/types";
 
 const LOAD_COUNT = 24;
 
 export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
-  const { category, searchQuery, sortBy, layout } = useGalleryStore();
+  const { category, searchQuery, sortBy } = useGalleryStore();
   const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
@@ -39,7 +38,6 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
 
       const processed = (data || []).map((app: any) => {
         const parts = (app.app_parts || []).sort((a: any, b: any) => a.sort_order - b.sort_order);
-        // 첫 번째 파트의 첫 번째 이미지를 썸네일로
         const firstImage = parts[0]?.app_images?.sort((a: any, b: any) => a.sort_order - b.sort_order)[0];
         const totalImages = parts.reduce((sum: number, p: any) => sum + (p.app_images?.length || 0), 0);
         return {
@@ -69,19 +67,17 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
 
   if (loading) {
     return (
-      <div className={cn(layout === "masonry" ? "masonry-grid" : "uniform-grid")}>
+      <div className="flex flex-wrap gap-4">
         {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className={layout === "masonry" ? "masonry-grid-item" : ""}>
-            <div className="rounded-xl overflow-hidden bg-ink-800">
-              <div className="skeleton w-full aspect-[4/3]" />
-              <div className="p-3 flex items-center gap-2.5">
-                <div className="skeleton w-9 h-9 rounded-xl shrink-0" />
-                <div className="flex-1 flex flex-col gap-1.5">
-                  <div className="skeleton h-3.5 rounded w-3/4" />
-                  <div className="skeleton h-3 rounded w-1/2" />
-                </div>
+          <div key={i} className="rounded-2xl overflow-hidden bg-ink-800 border border-ink-700/50" style={{ width: "300px" }}>
+            <div className="p-4 flex items-center gap-3">
+              <div className="skeleton rounded-xl shrink-0" style={{ width: "50px", height: "50px" }} />
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="skeleton h-4 rounded w-3/4" />
+                <div className="skeleton h-3 rounded w-1/2" />
               </div>
             </div>
+            <div className="skeleton w-full aspect-[4/3]" />
           </div>
         ))}
       </div>
@@ -105,17 +101,20 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
       <div className="mb-4">
         <span className="text-xs font-mono text-ink-600">{apps.length}개 앱</span>
       </div>
-      <div className={cn(layout === "masonry" ? "masonry-grid" : "uniform-grid")}>
+
+      {/* 300px 카드 flex wrap 레이아웃 */}
+      <div className="flex flex-wrap gap-4">
         {visible.map((app, index) => (
           <div
             key={app.id}
-            className={cn(layout === "masonry" ? "masonry-grid-item" : "", "animate-fade-up")}
+            className="animate-fade-up"
             style={{ animationDelay: `${(index % 12) * 40}ms`, animationFillMode: "both" }}
           >
             <AppCard app={app} />
           </div>
         ))}
       </div>
+
       {hasMore && (
         <div className="flex justify-center mt-10">
           <button

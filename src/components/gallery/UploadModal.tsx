@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
-import { X, Upload, ImagePlus, Loader2, Plus, Trash2, ChevronDown, Search, GripVertical } from "lucide-react";
+import { X, Upload, ImagePlus, Loader2, Plus, Trash2, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -22,6 +22,7 @@ interface ItunesResult {
   artworkUrl100: string;
   artworkUrl512: string;
   bundleId: string;
+  primaryGenreName: string;
 }
 
 interface PartEntry {
@@ -41,7 +42,6 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("mobile");
 
-  // 아이콘 관련
   const [iconSearchQuery, setIconSearchQuery] = useState("");
   const [iconSearchResults, setIconSearchResults] = useState<ItunesResult[]>([]);
   const [iconSearching, setIconSearching] = useState(false);
@@ -59,7 +59,6 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
   const iconRef = useRef<HTMLInputElement>(null);
   const imageRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // iTunes 검색
   const searchItunes = useCallback(async () => {
     if (!iconSearchQuery.trim()) return;
     setIconSearching(true);
@@ -122,7 +121,6 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
     ));
   };
 
-  // 파트 순서 변경
   const movePart = (from: number, to: number) => {
     setParts(prev => {
       const next = [...prev];
@@ -140,16 +138,16 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
     setError("");
 
     try {
-      // 아이콘 처리
       let iconUrl: string | null = null;
       let storeIconUrl: string | null = null;
       let bundleId: string | null = null;
+      let storeCategory: string | null = null;
 
       if (selectedIcon) {
-        // iTunes 아이콘 URL 저장 (자동 업데이트용)
         storeIconUrl = selectedIcon.artworkUrl512 || selectedIcon.artworkUrl100;
         bundleId = selectedIcon.bundleId;
         iconUrl = storeIconUrl;
+        storeCategory = selectedIcon.primaryGenreName || null;
       } else if (iconFile) {
         const ext = iconFile.name.split(".").pop();
         const iconName = `icons/${Date.now()}_icon.${ext}`;
@@ -158,7 +156,6 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
         iconUrl = data.publicUrl;
       }
 
-      // 앱 등록
       const { data: appData, error: appErr } = await supabase
         .from("apps")
         .insert({
@@ -168,11 +165,11 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
           icon_url: iconUrl,
           store_icon_url: storeIconUrl,
           bundle_id: bundleId,
+          store_category: storeCategory,
         })
         .select().single();
       if (appErr) throw appErr;
 
-      // 파트 + 이미지 등록
       for (let pi = 0; pi < parts.length; pi++) {
         const part = parts[pi];
         if (part.files.length === 0) continue;
@@ -217,13 +214,12 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
         </div>
 
         <div className="p-6 flex flex-col gap-6 max-h-[82vh] overflow-y-auto">
-
           {/* 아이콘 검색 */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-mono text-ink-500 uppercase tracking-wider">앱 아이콘</p>
               <button
-                onClick={() => setUseDirectUpload(!useDirectUpload)}
+                onClick={() => { setUseDirectUpload(!useDirectUpload); setIconPreview(null); setSelectedIcon(null); }}
                 className="text-xs text-ink-500 hover:text-acid transition-colors underline"
               >
                 {useDirectUpload ? "앱스토어에서 검색" : "직접 업로드"}
@@ -238,7 +234,7 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                     value={iconSearchQuery}
                     onChange={(e) => setIconSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && searchItunes()}
-                    placeholder="앱 이름으로 검색 (예: 카카오톡)"
+                    placeholder="앱 이름으로 검색 (예: 카카오톡, 올리브영)"
                     className="flex-1 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-200 placeholder-ink-600 focus:outline-none focus:border-acid/50 transition-colors"
                   />
                   <button
@@ -250,15 +246,10 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                   </button>
                 </div>
 
-                {/* 검색 결과 */}
                 {iconSearchResults.length > 0 && (
                   <div className="grid grid-cols-6 gap-2 p-3 bg-ink-800 border border-ink-700 rounded-xl">
                     {iconSearchResults.map((result, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleSelectIcon(result)}
-                        className="flex flex-col items-center gap-1 group"
-                      >
+                      <button key={i} onClick={() => handleSelectIcon(result)} className="flex flex-col items-center gap-1 group">
                         <img
                           src={result.artworkUrl100}
                           alt={result.trackName}
@@ -272,13 +263,25 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                   </div>
                 )}
 
-                {/* 선택된 아이콘 미리보기 */}
+                {iconSearchResults.length === 0 && !iconSearching && iconSearchQuery && (
+                  <div className="p-3 bg-ink-800 border border-ink-700 rounded-xl text-center">
+                    <p className="text-xs text-ink-500">앱스토어에 없는 앱이에요.</p>
+                    <button
+                      onClick={() => setUseDirectUpload(true)}
+                      className="text-xs text-acid underline mt-1"
+                    >
+                      직접 업로드로 전환
+                    </button>
+                  </div>
+                )}
+
                 {iconPreview && (
                   <div className="flex items-center gap-3 p-3 bg-ink-800 border border-ink-700 rounded-xl">
                     <img src={iconPreview} alt="icon" className="w-12 h-12 rounded-xl object-cover" />
                     <div>
                       <p className="text-sm text-ink-200">{selectedIcon?.trackName || "선택된 아이콘"}</p>
                       <p className="text-xs text-ink-500 font-mono">
+                        {selectedIcon?.primaryGenreName && <span className="text-acid">{selectedIcon.primaryGenreName} · </span>}
                         {selectedIcon ? "앱스토어 아이콘 (자동 업데이트)" : "직접 업로드"}
                       </p>
                     </div>
@@ -289,16 +292,19 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                 )}
               </div>
             ) : (
-              <div
-                onClick={() => iconRef.current?.click()}
-                className="w-20 h-20 rounded-2xl border-2 border-dashed border-ink-700 hover:border-acid/50 cursor-pointer overflow-hidden flex items-center justify-center transition-all"
-              >
-                {iconPreview
-                  ? <img src={iconPreview} alt="icon" className="w-full h-full object-cover" />
-                  : <div className="flex flex-col items-center gap-1 text-ink-600"><ImagePlus size={20} /><span className="text-[10px]">아이콘</span></div>
-                }
-                <input ref={iconRef} type="file" accept="image/*" className="hidden"
-                  onChange={(e) => e.target.files?.[0] && handleDirectIcon(e.target.files[0])} />
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => iconRef.current?.click()}
+                  className="w-16 h-16 rounded-2xl border-2 border-dashed border-ink-700 hover:border-acid/50 cursor-pointer overflow-hidden flex items-center justify-center transition-all shrink-0"
+                >
+                  {iconPreview
+                    ? <img src={iconPreview} alt="icon" className="w-full h-full object-cover" />
+                    : <div className="flex flex-col items-center gap-1 text-ink-600"><ImagePlus size={20} /><span className="text-[10px]">아이콘</span></div>
+                  }
+                  <input ref={iconRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleDirectIcon(e.target.files[0])} />
+                </div>
+                <p className="text-xs text-ink-500">아이콘 이미지를 직접 업로드해주세요</p>
               </div>
             )}
           </div>
@@ -316,7 +322,7 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
             </select>
           </div>
           <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
-            placeholder="간단한 설명"
+            placeholder="간단한 설명 (선택)"
             className="w-full bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-sm text-ink-200 placeholder-ink-600 focus:outline-none focus:border-acid/50 transition-colors"
           />
 
@@ -334,12 +340,10 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
             {parts.map((part, pi) => (
               <div key={pi} className="border border-ink-700 rounded-xl p-4 flex flex-col gap-3 bg-ink-800/50">
                 <div className="flex items-center gap-2">
-                  {/* 순서 변경 버튼 */}
                   <div className="flex flex-col gap-0.5">
-                    <button onClick={() => pi > 0 && movePart(pi, pi - 1)} className="text-ink-600 hover:text-acid disabled:opacity-20" disabled={pi === 0}>▲</button>
-                    <button onClick={() => pi < parts.length - 1 && movePart(pi, pi + 1)} className="text-ink-600 hover:text-acid disabled:opacity-20" disabled={pi === parts.length - 1}>▼</button>
+                    <button onClick={() => pi > 0 && movePart(pi, pi - 1)} disabled={pi === 0} className="text-[10px] text-ink-600 hover:text-acid disabled:opacity-20 leading-none">▲</button>
+                    <button onClick={() => pi < parts.length - 1 && movePart(pi, pi + 1)} disabled={pi === parts.length - 1} className="text-[10px] text-ink-600 hover:text-acid disabled:opacity-20 leading-none">▼</button>
                   </div>
-
                   <div className="relative flex-1">
                     <div className="flex">
                       <input
@@ -369,7 +373,6 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                       </div>
                     )}
                   </div>
-
                   {parts.length > 1 && (
                     <button onClick={() => removePart(pi)} className="text-ink-600 hover:text-coral transition-colors shrink-0">
                       <Trash2 size={14} />
@@ -377,7 +380,6 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                   )}
                 </div>
 
-                {/* 이미지들 */}
                 <div className="flex gap-2 flex-wrap">
                   {part.previews.map((preview, ii) => (
                     <div key={ii} className="relative group w-14">
