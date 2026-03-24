@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Images } from "lucide-react";
 import { App } from "@/types";
 import { cn } from "@/lib/utils";
@@ -12,11 +11,9 @@ interface AppCardProps {
 
 export function AppCard({ app }: AppCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const router = useRouter();
-
-  // 첫 번째 이미지를 썸네일로 사용
-  const thumbnail = app.app_images?.[0]?.image_url;
-  const imageCount = app.image_count || app.app_images?.length || 0;
+  const imageCount = (app as any).image_count || 0;
+  const partCount = (app as any).part_count || 0;
+  const thumbnail = (app as any).thumbnail || null;
 
   return (
     <div
@@ -27,7 +24,7 @@ export function AppCard({ app }: AppCardProps) {
       <div className="relative w-full overflow-hidden bg-ink-700">
         {thumbnail ? (
           <>
-            {!imageLoaded && <div className="skeleton absolute inset-0" style={{ paddingBottom: "75%" }} />}
+            {!imageLoaded && <div className="skeleton absolute inset-0 aspect-[4/3]" />}
             <img
               src={thumbnail}
               alt={app.name}
@@ -64,7 +61,6 @@ export function AppCard({ app }: AppCardProps) {
 
       {/* 카드 하단 */}
       <div className="px-3 py-2.5 flex items-center gap-2.5">
-        {/* 앱 아이콘 */}
         {app.icon_url ? (
           <img
             src={app.icon_url}
@@ -78,9 +74,9 @@ export function AppCard({ app }: AppCardProps) {
         )}
         <div className="min-w-0">
           <h3 className="text-sm font-medium text-ink-100 truncate">{app.name}</h3>
-          {app.description && (
-            <p className="text-[11px] text-ink-500 truncate">{app.description}</p>
-          )}
+          <p className="text-[11px] text-ink-500 font-mono">
+            {partCount > 0 ? `${partCount}개 파트` : app.category}
+          </p>
         </div>
       </div>
     </div>
