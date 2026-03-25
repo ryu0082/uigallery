@@ -26,8 +26,8 @@ interface GalleryStore extends FilterState, SelectionState {
 }
 
 export const useGalleryStore = create<GalleryStore>((set) => ({
-  genre: "all",
-  uiPattern: "all",
+  genre: [],           // "all" 대신 빈 배열 = 전체
+  uiPattern: [],       // "all" 대신 빈 배열 = 전체
   searchQuery: "",
   sortBy: "latest",
   layout: "grid",
@@ -40,8 +40,25 @@ export const useGalleryStore = create<GalleryStore>((set) => ({
   lightboxImages: [],
   currentImageIndex: 0,
 
-  setGenre: (genre) => set({ genre }),
-  setUiPattern: (uiPattern) => set({ uiPattern }),
+  // toggle 방식: 이미 선택된 항목이면 제거, 없으면 추가
+  setGenre: (genre) =>
+    set((state) => {
+      if (genre === "all") return { genre: [] };
+      const next = state.genre.includes(genre)
+        ? state.genre.filter((g) => g !== genre)
+        : [...state.genre, genre];
+      return { genre: next };
+    }),
+
+  setUiPattern: (pattern) =>
+    set((state) => {
+      if (pattern === "__all__") return { uiPattern: [] };
+      const next = state.uiPattern.includes(pattern)
+        ? state.uiPattern.filter((p) => p !== pattern)
+        : [...state.uiPattern, pattern];
+      return { uiPattern: next };
+    }),
+
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setSortBy: (sortBy) => set({ sortBy }),
   setLayout: (layout) => set({ layout }),

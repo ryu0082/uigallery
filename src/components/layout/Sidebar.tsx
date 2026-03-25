@@ -3,7 +3,7 @@
 import { useGalleryStore } from "@/lib/store";
 import { GENRES, UI_PATTERNS } from "@/types";
 import { cn } from "@/lib/utils";
-import { TrendingUp, Sparkles, Clock } from "lucide-react";
+import { TrendingUp, Sparkles, Clock, Check } from "lucide-react";
 
 const COLOR_CHIPS = [
   { id: "black", hex: "#111111" },
@@ -22,6 +22,21 @@ const COLOR_CHIPS = [
   { id: "purple", hex: "#7b1fa2" },
   { id: "pink", hex: "#e91e8c" },
 ];
+
+function Checkbox({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={cn(
+        "flex items-center justify-center w-3.5 h-3.5 rounded-[3px] border shrink-0 transition-all",
+        checked
+          ? "bg-[#c8ff00] border-[#c8ff00]"
+          : "bg-transparent border-[#444444]"
+      )}
+    >
+      {checked && <Check size={9} strokeWidth={3} className="text-black" />}
+    </span>
+  );
+}
 
 export function Sidebar() {
   const {
@@ -64,20 +79,25 @@ export function Sidebar() {
       <div>
         <p className="text-xs text-[#b0b0b0] uppercase tracking-wider mb-2 px-2">장르</p>
         <div className="flex flex-col gap-0.5">
-          {GENRES.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => setGenre(g.id)}
-              className={cn(
-                "flex items-center px-2 py-1.5 rounded-lg text-sm transition-all text-left",
-                genre === g.id
-                  ? "bg-[#2a2a2a] text-[#c8ff00]"
-                  : "text-[#b8b8b8] hover:text-[#f0f0f0] hover:bg-[#1c1c1c]"
-              )}
-            >
-              {g.label}
-            </button>
-          ))}
+          {GENRES.map(({ id, label }) => {
+            const isAll = id === "all";
+            const isChecked = isAll ? genre.length === 0 : genre.includes(id);
+            return (
+              <button
+                key={id}
+                onClick={() => setGenre(id)}
+                className={cn(
+                  "flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-all text-left",
+                  isChecked
+                    ? "bg-[#2a2a2a] text-[#c8ff00]"
+                    : "text-[#b8b8b8] hover:text-[#f0f0f0] hover:bg-[#1c1c1c]"
+                )}
+              >
+                <Checkbox checked={isChecked} />
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -85,27 +105,25 @@ export function Sidebar() {
       <div>
         <p className="text-xs text-[#b0b0b0] uppercase tracking-wider mb-2 px-2">UI 패턴</p>
         <div className="flex flex-col gap-0.5">
-          <button
-            onClick={() => setUiPattern("all")}
-            className={cn(
-              "flex items-center px-2 py-1.5 rounded-lg text-sm transition-all text-left",
-              uiPattern === "all" ? "bg-[#2a2a2a] text-[#c8ff00]" : "text-[#b8b8b8] hover:text-[#f0f0f0] hover:bg-[#1c1c1c]"
-            )}
-          >
-            전체
-          </button>
-          {UI_PATTERNS.map((p) => (
-            <button
-              key={p}
-              onClick={() => setUiPattern(p)}
-              className={cn(
-                "flex items-center px-2 py-1.5 rounded-lg text-sm transition-all text-left",
-                uiPattern === p ? "bg-[#2a2a2a] text-[#c8ff00]" : "text-[#b8b8b8] hover:text-[#f0f0f0] hover:bg-[#1c1c1c]"
-              )}
-            >
-              {p}
-            </button>
-          ))}
+          {[{ id: "__all__", label: "전체" }, ...UI_PATTERNS.map((p) => ({ id: p, label: p }))].map(({ id, label }) => {
+            const isAll = id === "__all__";
+            const isChecked = isAll ? uiPattern.length === 0 : uiPattern.includes(id);
+            return (
+              <button
+                key={id}
+                onClick={() => isAll ? setUiPattern("__all__") : setUiPattern(id)}
+                className={cn(
+                  "flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm transition-all text-left",
+                  isChecked
+                    ? "bg-[#2a2a2a] text-[#c8ff00]"
+                    : "text-[#b8b8b8] hover:text-[#f0f0f0] hover:bg-[#1c1c1c]"
+                )}
+              >
+                <Checkbox checked={isChecked} />
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -125,7 +143,7 @@ export function Sidebar() {
                     ? "border-[#c8ff00] bg-[#c8ff00]/10"
                     : "border-transparent hover:border-[#3d3d3d]"
                 )}
-                title={chip.label}
+                title={chip.id}
               >
                 <span
                   className="w-6 h-6 rounded-full"
@@ -134,12 +152,7 @@ export function Sidebar() {
                     border: chip.id === "white" ? "1px solid #3d3d3d" : "none",
                   }}
                 />
-                <span className={cn(
-                  "text-[11px] leading-tight text-center",
-                  isSelected ? "text-[#c8ff00]" : "text-[#666666]"
-                )}>
-                  {chip.label}
-                </span>
+
               </button>
             );
           })}

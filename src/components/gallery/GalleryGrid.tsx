@@ -27,7 +27,7 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
         )
       `);
 
-      if (genre !== "all") query = query.eq("genre", genre);
+      if (genre.length > 0) query = query.in("genre", genre);
       if (searchQuery.trim()) query = query.ilike("name", `%${searchQuery}%`);
       if (sortBy === "name") query = query.order("name");
       else query = query.order("created_at", { ascending: false });
@@ -49,11 +49,11 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
       });
 
       // 2. UI 패턴 필터
-      if (uiPattern && uiPattern !== "all") {
-        processed = processed.filter((app: any) =>
-          app.ui_pattern?.includes(uiPattern)
-        );
-      }
+      if (uiPattern.length > 0) {
+  processed = processed.filter((app: any) =>
+    uiPattern.some((p: string) => app.ui_pattern?.includes(p))
+  );
+}
 
      // 3. 컬러 필터 로직 수정 (dominant_colors 컬럼 사용)
 if (selectedColor && selectedColor !== "all") {

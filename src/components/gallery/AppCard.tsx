@@ -76,14 +76,23 @@ export function AppCard({ app }: AppCardProps) {
   );
 }
 
-// iTunes 카테고리 → 한글 매핑 (AppCard에서도 사용)
+
+// iTunes 카테고리 → 한글 장르 매핑 (정의된 11개 카테고리 체계 적용)
 function mapItunesGenre(itunesGenre: string): string {
   const map: Record<string, string> = {
-    "Games": "게임", "Finance": "금융/핀테크", "Shopping": "커머스/쇼핑",
-    "Social Networking": "소셜/커뮤니티", "Health & Fitness": "헬스/피트니스",
-    "Travel": "여행/지도", "Food & Drink": "음식/배달", "Education": "교육",
-    "Entertainment": "엔터테인먼트", "Utilities": "유틸리티", "Lifestyle": "유틸리티",
-    "Sports": "스포츠", "Business": "금융/핀테크", "Productivity": "유틸리티",
+    "Games": "게임",    "Finance": "금융/핀테크",    "Business": "금융/핀테크",
+    "Shopping": "쇼핑/커머스",    "Catalogs": "쇼핑/커머스",    "Social Networking": "소셜/커뮤니티",
+    "News": "소셜/커뮤니티",    "Magazines & Newspapers": "소셜/커뮤니티",
+    "Health & Fitness": "건강/의료",    "Sports": "건강/의료",
+    "Medical": "건강/의료",    "Travel": "여행/지도",    "Navigation": "여행/지도",
+    "Food & Drink": "음식/배달",    "Education": "교육/도서",
+    "Books": "교육/도서",    "Reference": "교육/도서",
+    "Entertainment": "엔터테인먼트",    "Music": "엔터테인먼트",
+    "Photo & Video": "엔터테인먼트",    "Utilities": "도구/관리",
+    "Productivity": "도구/관리",    "Lifestyle": "라이프스타일",
+    "Weather": "라이프스타일",    "Kids": "키즈",
   };
+
+  // 매핑된 값이 있으면 반환, 없으면 입력된 원본 카테고리 반환
   return map[itunesGenre] || itunesGenre;
 }
