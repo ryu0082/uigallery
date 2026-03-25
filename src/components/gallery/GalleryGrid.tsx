@@ -10,7 +10,8 @@ import { App } from "@/types";
 const LOAD_COUNT = 24;
 
 export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
-  const { genre, uiPattern, searchQuery, sortBy } = useGalleryStore();
+  // 1. selectedColor를 추가로 가져옵니다.
+  const { genre, uiPattern, searchQuery, sortBy, selectedColor } = useGalleryStore();
   const [apps, setApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
@@ -47,14 +48,21 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
         };
       });
 
-      // UI 패턴 필터
+      // 2. UI 패턴 필터
       if (uiPattern && uiPattern !== "all") {
         processed = processed.filter((app: any) =>
           app.ui_pattern?.includes(uiPattern)
         );
       }
 
-      // 컬러 필터 (store에서 selectedColor 추가 필요 시)
+      // 3. 컬러 필터 로직 수정 (dominant_colors 컬럼 사용)
+if (selectedColor && selectedColor !== "all") {
+  processed = processed.filter((app: any) => 
+    // 저장된 dominant_colors 배열 안에 선택한 색상이 있는지 확인
+    Array.isArray(app.dominant_colors) && app.dominant_colors.includes(selectedColor)
+  );
+}
+
       setApps(processed);
       setVisibleCount(LOAD_COUNT);
     } catch (err) {
@@ -62,7 +70,8 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
     } finally {
       setLoading(false);
     }
-  }, [genre, uiPattern, searchQuery, sortBy]);
+    // 4. 의존성 배열에 selectedColor를 추가해서 색을 바꿀 때마다 다시 실행되게 합니다.
+  }, [genre, uiPattern, searchQuery, sortBy, selectedColor]);
 
   useEffect(() => {
     fetchApps();
@@ -95,8 +104,8 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <PackageOpen size={40} className="text-[#3d3d3d]" />
         <div className="text-center">
-          <p className="text-[#999999] text-sm">등록된 앱이 없어요</p>
-          <p className="text-[#666666] text-sm mt-1">앱 등록 버튼으로 첫 번째 앱을 추가해보세요!</p>
+          <p className="text-[#999999] text-sm">해당 조건에 맞는 앱이 없어요</p>
+          <p className="text-[#666666] text-sm mt-1">다른 필터를 선택하거나 검색어를 바꿔보세요!</p>
         </div>
       </div>
     );
@@ -104,7 +113,6 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
 
   return (
     <div>
-      {/* n개 앱 라벨 제거됨 */}
       <div className="flex flex-wrap gap-4">
         {visible.map((app, index) => (
           <div

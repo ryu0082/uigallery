@@ -10,29 +10,29 @@ import { GENRES, UI_PATTERNS } from "@/types";
 const ITUNES_GENRE_MAP: Record<string, string> = {
   "Games": "게임",
   "Finance": "금융/핀테크",
-  "Shopping": "커머스/쇼핑",
+  "Shopping": "쇼핑/커머스",
   "Social Networking": "소셜/커뮤니티",
-  "Health & Fitness": "헬스/피트니스",
+  "Health & Fitness": "건강/의료",
   "Travel": "여행/지도",
   "Food & Drink": "음식/배달",
-  "Education": "교육",
+  "Education": "교육/도서",
   "Entertainment": "엔터테인먼트",
-  "Utilities": "유틸리티",
-  "Lifestyle": "유틸리티",
-  "Sports": "스포츠",
+  "Utilities": "도구/관리",
+  "Productivity": "도구/관리",
+  "Lifestyle": "라이프스타일", 
+  "Sports": "건강/의료",
   "Business": "금융/핀테크",
   "News": "소셜/커뮤니티",
   "Music": "엔터테인먼트",
   "Photo & Video": "엔터테인먼트",
-  "Medical": "헬스/피트니스",
+  "Medical": "건강/의료",
   "Navigation": "여행/지도",
-  "Books": "교육",
-  "Reference": "교육",
-  "Productivity": "유틸리티",
-  "Weather": "유틸리티",
-  "Catalogs": "커머스/쇼핑",
+  "Books": "교육/도서",
+  "Reference": "교육/도서",
+  "Weather": "라이프스타일",
+  "Catalogs": "쇼핑/커머스",
   "Magazines & Newspapers": "소셜/커뮤니티",
-  "Kids": "교육",
+  "Kids": "키즈",
 };
 
 function mapItunesGenre(itunesGenre: string): string {
@@ -337,7 +337,7 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                     onChange={(e) => setIconSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && searchItunes()}
                     placeholder="앱 이름으로 검색 (예: 카카오톡, 올리브영)"
-                    className="flex-1 bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg px-3 py-2 text-sm text-[#d4d4d4] placeholder-[#666666] focus:outline-none focus:border-[#c8ff00]/50 transition-colors"
+                    className="flex-1 bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg px-3 py-2 text-sm text-[#d4d4d4] placeholder-[#666666] focus:outline-none focus:border-[#c8ff00] transition-colors"
                   />
                   <button onClick={searchItunes} disabled={iconSearching}
                     className="px-4 py-2 bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg text-[#999999] hover:border-[#c8ff00] hover:text-[#c8ff00] transition-all">
@@ -393,7 +393,7 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
 
           {/* 앱 이름 */}
           <input type="text" value={appName} onChange={(e) => setAppName(e.target.value)} placeholder="앱 이름 *"
-            className="w-full bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg px-3 py-2 text-sm text-[#d4d4d4] placeholder-[#666666] focus:outline-none focus:border-[#c8ff00]/50 transition-colors"
+            className="w-full bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg px-3 py-2 text-sm text-[#d4d4d4] placeholder-[#666666] focus:outline-none focus:border-[#c8ff00] transition-colors"
           />
 
           {/* 장르 — 스토어 검색 성공 시 숨김 */}
@@ -401,7 +401,7 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
             <div>
               <p className="text-xs text-[#666666] uppercase tracking-wider mb-1.5">장르</p>
               <select value={genre} onChange={(e) => setGenre(e.target.value)}
-                className="w-full bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg px-3 py-2 text-sm text-[#d4d4d4] focus:outline-none focus:border-[#c8ff00]/50 transition-colors">
+                className="w-full bg-[#1c1c1c] border border-[#3d3d3d] rounded-lg px-3 py-2 text-sm text-[#d4d4d4] focus:outline-none focus:border-[#c8ff00] transition-colors">
                 {GENRES.filter(g => g.id !== "all").map(g => (
                   <option key={g.id} value={g.id} className="bg-[#1c1c1c]">{g.label}</option>
                 ))}
@@ -433,7 +433,7 @@ export function UploadModal({ onClose, onSuccess }: UploadModalProps) {
                     <div className="flex">
                       <input type="text" value={part.partName} onChange={(e) => updatePartName(pi, e.target.value)}
                         placeholder="파트명 (예: 로그인, 홈, 마이페이지)"
-                        className="flex-1 bg-[#1c1c1c] border border-[#3d3d3d] rounded-l-lg px-3 py-2 text-sm text-[#d4d4d4] placeholder-[#666666] focus:outline-none focus:border-[#c8ff00]/50 transition-colors"
+                        className="flex-1 bg-[#1c1c1c] border border-[#3d3d3d] rounded-l-lg px-3 py-2 text-sm text-[#d4d4d4] placeholder-[#666666] focus:outline-none focus:border-[#c8ff00] transition-colors"
                       />
                       <button onClick={() => toggleDropdown(pi)}
                         className="bg-[#1c1c1c] border border-l-0 border-[#3d3d3d] rounded-r-lg px-2.5 text-[#666666] hover:text-[#c8ff00] transition-all">

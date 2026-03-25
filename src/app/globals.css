@@ -26,13 +26,18 @@ body, * {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* border-radius가 focus 시 변하지 않도록 고정 (#6) */
+/* 모든 입력 요소의 기본 아웃라인 제거 및 라운드 유지 */
 input, select, textarea, button {
-  border-radius: inherit;
+  /* 기본적으로 브라우저가 그리는 파란색/검은색 테두리(outline)를 제거합니다. 
+     이게 살아있으면 라운드값을 무시하고 직각으로 보일 수 있어요. */
+  outline: none !important;
+  box-shadow: none !important;
 }
+
+/* focus 시에도 원래 본인이 가진 border-radius를 유지하도록 설정 */
 input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-radius: inherit !important;
+  outline: none !important;
+  /* inherit을 지우고, 원래 설정된 라운드값이 유지되도록 합니다. */
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }

@@ -6,21 +6,21 @@ import { cn } from "@/lib/utils";
 import { TrendingUp, Sparkles, Clock } from "lucide-react";
 
 const COLOR_CHIPS = [
-  { id: "black",      label: "블랙",        hex: "#111111" },
-  { id: "darkgray",   label: "다크그레이",  hex: "#555555" },
-  { id: "gray",       label: "그레이",      hex: "#999999" },
-  { id: "lightgray",  label: "라이트그레이",hex: "#cccccc" },
-  { id: "white",      label: "화이트",      hex: "#f5f5f5", border: true },
-  { id: "red",        label: "레드",        hex: "#e53935" },
-  { id: "orange",     label: "오렌지",      hex: "#fb8c00" },
-  { id: "yellow",     label: "옐로우",      hex: "#fdd835" },
-  { id: "lightgreen", label: "라이트그린",  hex: "#8bc34a" },
-  { id: "green",      label: "그린",        hex: "#2e7d32" },
-  { id: "teal",       label: "틸/민트",     hex: "#00897b" },
-  { id: "blue",       label: "블루",        hex: "#1e88e5" },
-  { id: "navy",       label: "네이비",      hex: "#1a237e" },
-  { id: "purple",     label: "퍼플",        hex: "#7b1fa2" },
-  { id: "pink",       label: "핑크",        hex: "#e91e8c" },
+  { id: "black", hex: "#111111" },
+  { id: "darkgray", hex: "#555555" },
+  { id: "gray", hex: "#999999" },
+  { id: "lightgray", hex: "#cccccc" },
+  { id: "white", hex: "#f5f5f5", border: true },
+  { id: "red", hex: "#e53935" },
+  { id: "orange", hex: "#fb8c00" },
+  { id: "yellow", hex: "#fdd835" },
+  { id: "lightgreen", hex: "#8bc34a" },
+  { id: "green", hex: "#2e7d32" },
+  { id: "teal", hex: "#00897b" },
+  { id: "blue", hex: "#1e88e5" },
+  { id: "navy", hex: "#1a237e" },
+  { id: "purple", hex: "#7b1fa2" },
+  { id: "pink", hex: "#e91e8c" },
 ];
 
 export function Sidebar() {
@@ -36,7 +36,7 @@ export function Sidebar() {
 
       {/* 정렬 */}
       <div>
-        <p className="text-xs text-[#666666] uppercase tracking-wider mb-2 px-2">정렬</p>
+        <p className="text-xs text-[#b0b0b0] uppercase tracking-wider mb-2 px-2">정렬</p>
         <div className="flex flex-col gap-0.5">
           {[
             { id: "latest" as const, label: "최신순", icon: Clock },
@@ -62,7 +62,7 @@ export function Sidebar() {
 
       {/* 장르 */}
       <div>
-        <p className="text-xs text-[#666666] uppercase tracking-wider mb-2 px-2">장르</p>
+        <p className="text-xs text-[#b0b0b0] uppercase tracking-wider mb-2 px-2">장르</p>
         <div className="flex flex-col gap-0.5">
           {GENRES.map((g) => (
             <button
@@ -83,7 +83,7 @@ export function Sidebar() {
 
       {/* UI 패턴 */}
       <div>
-        <p className="text-xs text-[#666666] uppercase tracking-wider mb-2 px-2">UI 패턴</p>
+        <p className="text-xs text-[#b0b0b0] uppercase tracking-wider mb-2 px-2">UI 패턴</p>
         <div className="flex flex-col gap-0.5">
           <button
             onClick={() => setUiPattern("all")}
@@ -111,7 +111,7 @@ export function Sidebar() {
 
       {/* 컬러 필터 */}
       <div>
-        <p className="text-xs text-[#666666] uppercase tracking-wider mb-3 px-2">컬러</p>
+        <p className="text-xs text-[#b0b0b0] uppercase tracking-wider mb-3 px-2">컬러</p>
         <div className="grid grid-cols-3 gap-2 px-1">
           {COLOR_CHIPS.map((chip) => {
             const isSelected = selectedColor === chip.id;
@@ -120,7 +120,7 @@ export function Sidebar() {
                 key={chip.id}
                 onClick={() => setSelectedColor(isSelected ? "all" : chip.id)}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 p-1.5 rounded-lg transition-all border",
+                  "flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-all border",
                   isSelected
                     ? "border-[#c8ff00] bg-[#c8ff00]/10"
                     : "border-transparent hover:border-[#3d3d3d]"
