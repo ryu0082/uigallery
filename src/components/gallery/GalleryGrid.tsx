@@ -55,7 +55,7 @@ export function GalleryGrid({ refreshKey }: { refreshKey?: number }) {
         );
       }
 
-      // 3. 컬러 필터 로직 수정 (dominant_colors 컬럼 사용)
+     // 3. 컬러 필터 로직 수정 (dominant_colors 컬럼 사용)
 if (selectedColor && selectedColor !== "all") {
   processed = processed.filter((app: any) => 
     // 저장된 dominant_colors 배열 안에 선택한 색상이 있는지 확인
