@@ -1,8 +1,13 @@
 import { create } from "zustand";
-import { FilterState, SelectionState, Genre } from "@/types";
+import { FilterState, SelectionState, Genre, AppImage } from "@/types"; // AppImage 추가
 
 interface GalleryStore extends FilterState, SelectionState {
   selectedColor: string;
+  // 라이트박스 상태 추가
+  isLightboxOpen: boolean;
+  lightboxImages: AppImage[];
+  currentImageIndex: number;
+  
   setGenre: (genre: Genre) => void;
   setUiPattern: (pattern: string) => void;
   setSearchQuery: (query: string) => void;
@@ -12,6 +17,12 @@ interface GalleryStore extends FilterState, SelectionState {
   toggleImageSelection: (id: string) => void;
   clearSelection: () => void;
   setIsSelecting: (v: boolean) => void;
+
+  // 라이트박스 액션 추가
+  openLightbox: (images: AppImage[], index: number) => void;
+  closeLightbox: () => void;
+  prevImage: () => void;
+  nextImage: () => void;
 }
 
 export const useGalleryStore = create<GalleryStore>((set) => ({
@@ -23,6 +34,11 @@ export const useGalleryStore = create<GalleryStore>((set) => ({
   selectedColor: "all",
   selectedImageIds: new Set<string>(),
   isSelecting: false,
+  
+  // 라이트박스 초기값
+  isLightboxOpen: false,
+  lightboxImages: [],
+  currentImageIndex: 0,
 
   setGenre: (genre) => set({ genre }),
   setUiPattern: (uiPattern) => set({ uiPattern }),
@@ -39,4 +55,18 @@ export const useGalleryStore = create<GalleryStore>((set) => ({
     }),
   clearSelection: () => set({ selectedImageIds: new Set(), isSelecting: false }),
   setIsSelecting: (isSelecting) => set({ isSelecting }),
+
+  // 라이트박스 기능 구현
+  openLightbox: (images, index) => set({ 
+    isLightboxOpen: true, 
+    lightboxImages: images, 
+    currentImageIndex: index 
+  }),
+  closeLightbox: () => set({ isLightboxOpen: false }),
+  prevImage: () => set((state) => ({ 
+    currentImageIndex: (state.currentImageIndex - 1 + state.lightboxImages.length) % state.lightboxImages.length 
+  })),
+  nextImage: () => set((state) => ({ 
+    currentImageIndex: (state.currentImageIndex + 1) % state.lightboxImages.length 
+  })),
 }));

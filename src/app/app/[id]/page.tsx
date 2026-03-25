@@ -3,7 +3,9 @@
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAdminStore } from "@/lib/adminStore";
+import { useGalleryStore } from "@/lib/store"; // 1. 스토어 임포트
 import { AddPartModal } from "@/components/gallery/AddPartModal";
+import { Lightbox } from "@/components/gallery/Lightbox"; // 2. 라이트박스 임포트
 import { App, AppPart, AppImage } from "@/types";
 import { Check, Download, Copy, X, ArrowLeft, Loader2, Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,22 +19,34 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
   const [showAddPart, setShowAddPart] = useState(false);
   const { isAdmin } = useAdminStore();
 
+  // 3. 라이트박스 열기 함수 가져오기
+  const { openLightbox } = useGalleryStore();
+
   const sliderRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const dragState = useRef<{ partId: string; startX: number; scrollLeft: number; moved: boolean } | null>(null);
 
-  const fetchData = async () => {
+const fetchData = async () => {
     const { data: appData } = await supabase.from("apps").select("*").eq("id", params.id).single();
     const { data: partsData } = await supabase
       .from("app_parts").select(`*, app_images(*)`)
       .eq("app_id", params.id).order("sort_order");
+    
     setApp(appData);
-    setParts((partsData || []).map((p: any) => ({
+
+    // 각 파트의 이미지들에 파트 이름을 미리 넣어줍니다.
+    const formattedParts = (partsData || []).map((p: any) => ({
       ...p,
-      app_images: (p.app_images || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
-    })));
+      app_images: (p.app_images || [])
+        .sort((a: any, b: any) => a.sort_order - b.sort_order)
+        .map((img: any) => ({
+          ...img,
+          part_name: p.part_name // 여기서 확실히 주입!
+        })),
+    }));
+
+    setParts(formattedParts);
     setLoading(false);
   };
-
   useEffect(() => { fetchData(); }, [params.id]);
 
   const onMouseDown = (partId: string, e: React.MouseEvent) => {
@@ -92,8 +106,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
   };
 
   const allImages = parts.flatMap(p => p.app_images || []);
-  const selectedImages = allImages.filter(img => selectedIds.has(img.id));
-
   const handleDownload = async () => {
     setDownloading(true);
     for (const img of selectedImages) {
@@ -156,7 +168,7 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#f0f0f0]">
-      {/* 헤더 - 높이 늘림 (#8) */}
+      {/* 헤더 */}
       <header className="sticky top-0 z-40 border-b border-[#2a2a2a] bg-[#0a0a0a]/90 backdrop-blur-xl">
         <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center gap-4">
           <button onClick={() => window.close()} className="flex items-center gap-2 text-[#999999] hover:text-[#f0f0f0] transition-colors">
@@ -170,9 +182,7 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
               : <div className="rounded-xl bg-[#2a2a2a] flex items-center justify-center" style={{ width: "50px", height: "50px" }}><span className="text-lg font-bold text-[#666666]">{app.name[0]}</span></div>
             }
             <div>
-              {/* 앱 이름 bold 18px */}
               <h1 className="font-bold text-[#f0f0f0]" style={{ fontSize: "18px" }}>{app.name}</h1>
-              {/* 최소 폰트 14px (#8) */}
               <p className="text-sm text-[#666666] mt-0.5">
                 {(app as any).store_category || (app as any).genre || app.category}
                 {" · "}{parts.length}개 파트 · {allImages.length}개 화면
@@ -180,7 +190,6 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          {/* 관리자 버튼 - 크기 키움 (#8) */}
           {isAdmin && (
             <div className="ml-auto flex items-center gap-2">
               <button
@@ -200,83 +209,69 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
         </div>
       </header>
 
-      {/* 파트 섹션 */}
+      {/* 메인 섹션 */}
       <main className="max-w-[1400px] mx-auto px-6 py-8 flex flex-col gap-10">
         {parts.map((part, pi) => (
           <section key={part.id}>
-            {/* 파트 타이틀 */}
             <div className="flex items-center gap-3 mb-4">
-              {/* 파트명 bold 18px - n장 텍스트 제거 (#7) */}
               <h2 className="font-bold text-[#f0f0f0]" style={{ fontSize: "18px" }}>{part.part_name}</h2>
-
-              {/* 관리자 파트 컨트롤 - border 추가, 아이콘 18px (#9) */}
               {isAdmin && (
                 <div className="flex items-center gap-2 ml-auto">
-                  <button
-                    onClick={() => movePart(part.id, "up")}
-                    disabled={pi === 0}
-                    className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#b8b8b8] hover:border-[#555555] disabled:opacity-20 transition-all rounded-md"
-                  >
+                  <button onClick={() => movePart(part.id, "up")} disabled={pi === 0} className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#b8b8b8] hover:border-[#555555] disabled:opacity-20 transition-all rounded-md">
                     <ChevronUp size={18} />
                   </button>
-                  <button
-                    onClick={() => movePart(part.id, "down")}
-                    disabled={pi === parts.length - 1}
-                    className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#b8b8b8] hover:border-[#555555] disabled:opacity-20 transition-all rounded-md"
-                  >
+                  <button onClick={() => movePart(part.id, "down")} disabled={pi === parts.length - 1} className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#b8b8b8] hover:border-[#555555] disabled:opacity-20 transition-all rounded-md">
                     <ChevronDown size={18} />
                   </button>
-                  <button
-                    onClick={() => deletePart(part.id)}
-                    className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#ff4d3d] hover:border-[#ff4d3d]/50 transition-all rounded-md"
-                  >
+                  <button onClick={() => deletePart(part.id)} className="p-1.5 border border-[#3d3d3d] text-[#666666] hover:text-[#ff4d3d] hover:border-[#ff4d3d]/50 transition-all rounded-md">
                     <Trash2 size={18} />
                   </button>
                 </div>
               )}
             </div>
 
-            {/* 가로 슬라이더 - overflow-y: visible로 hover 잘림 방지 (#10) */}
             <div
               ref={el => { if (el) sliderRefs.current.set(part.id, el); }}
               onMouseDown={e => onMouseDown(part.id, e)}
               onMouseMove={e => onMouseMove(part.id, e)}
               onMouseUp={() => onMouseUp(part.id)}
               onMouseLeave={() => onMouseUp(part.id)}
-              className="flex gap-4 select-none"
-              style={{
-                cursor: "grab",
-                overflowX: "auto",
-                overflowY: "visible",  /* hover 시 위쪽 잘림 방지 (#10) */
-                paddingBottom: "12px",
-                paddingTop: "8px",     /* hover 올라가는 공간 확보 */
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-              }}
+              className="flex gap-4 select-none overflow-x-auto pb-4 pt-2"
+              style={{ cursor: "grab", scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {(part.app_images || []).map(img => {
+              {(part.app_images || []).map((img, index) => {
                 const selected = selectedIds.has(img.id);
                 return (
                   <div
                     key={img.id}
-                    onClick={() => toggleSelect(img)}
-                    className={cn(
-                      "shrink-0 relative rounded-xl overflow-hidden bg-[#1c1c1c] cursor-pointer transition-all duration-200",
-                      "hover:-translate-y-2 hover:shadow-xl hover:shadow-black/60",
-                      selected && "ring-2 ring-[#c8ff00] ring-offset-2 ring-offset-[#0a0a0a]"
-                    )}
+                    className="group shrink-0 relative rounded-xl overflow-hidden bg-[#1c1c1c] transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/60 border border-[#2a2a2a]"
                     style={{ width: "300px" }}
                   >
-                    <img src={img.image_url} alt="" className="w-full object-cover" draggable={false} />
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => {
+                        if (dragState.current?.moved) return;
+                        openLightbox(part.app_images || [], index);
+                      }}
+                    >
+                      <img src={img.image_url} alt="" className="w-full object-cover" draggable={false} />
+                    </div>
+
                     <div
-                      onClick={e => { e.stopPropagation(); toggleSelect(img); }}
-                      className={cn("absolute top-2 right-2 transition-all", selected ? "opacity-100" : "opacity-0 hover:opacity-100")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(img);
+                      }}
+                      className={cn(
+                        "absolute top-3 right-3 z-20 cursor-pointer transition-all duration-200",
+                        selected ? "opacity-100 scale-105" : "opacity-0 group-hover:opacity-100"
+                      )}
                     >
                       <div className={cn(
-                        "w-6 h-6 rounded-md border-2 flex items-center justify-center",
-                        selected ? "bg-[#c8ff00] border-[#c8ff00]" : "bg-[#0a0a0a]/70 border-[#999999] backdrop-blur-sm"
+                        "w-7 h-7 rounded-lg border-2 flex items-center justify-center shadow-lg transition-colors",
+                        selected ? "bg-[#c8ff00] border-[#c8ff00]" : "bg-black/60 border-white/40 backdrop-blur-md hover:border-[#c8ff00]"
                       )}>
-                        {selected && <Check size={11} className="text-[#0a0a0a]" strokeWidth={3} />}
+                        {selected && <Check size={14} className="text-black" strokeWidth={3} />}
                       </div>
                     </div>
                   </div>
@@ -287,7 +282,7 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
         ))}
       </main>
 
-      {/* 하단 선택 바 */}
+      {/* 하단 바 */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           <div className="flex items-center gap-3 bg-[#1c1c1c] border border-[#3d3d3d] rounded-2xl px-5 py-3 shadow-2xl">
@@ -328,6 +323,8 @@ export default function AppDetailPage({ params }: { params: { id: string } }) {
           onSuccess={fetchData}
         />
       )}
+
+      <Lightbox />
     </div>
   );
 }
