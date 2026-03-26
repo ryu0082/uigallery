@@ -82,7 +82,7 @@ if (selectedColor && selectedColor !== "all") {
 
   if (loading) {
     return (
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-4 justify-start">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="rounded-2xl overflow-hidden bg-[#1c1c1c] border border-[#2a2a2a]" style={{ width: "300px" }}>
             <div className="p-4 flex items-center gap-3">
@@ -110,30 +110,29 @@ if (selectedColor && selectedColor !== "all") {
       </div>
     );
   }
-
-  return (
-    <div>
-      <div className="flex flex-wrap gap-4">
-        {visible.map((app, index) => (
-          <div
-            key={app.id}
-            className="animate-fade-up"
-            style={{ animationDelay: `${(index % 12) * 40}ms`, animationFillMode: "both" }}
-          >
-            <AppCard app={app} />
-          </div>
-        ))}
-      </div>
-      {hasMore && (
-        <div className="flex justify-center mt-10">
-          <button
-            onClick={() => setVisibleCount(v => v + LOAD_COUNT)}
-            className="px-8 py-2.5 border border-[#3d3d3d] text-[#999999] text-sm rounded-lg hover:text-[#c8ff00] transition-all"
-          >
-            더 보기 ({apps.length - visibleCount}개 남음)
-          </button>
-        </div>
-      )}
-    </div>
-  );
+return (
+    <div>
+      <div className="flex flex-wrap gap-4 justify-start">
+        {visible.map((app, index) => (
+          <div
+            key={app.id}
+            className="animate-fade-up"
+            style={{ animationDelay: `${(index % 12) * 40}ms`, animationFillMode: "both" }}
+          >
+            <AppCard app={app} />
+          </div>
+        ))}
+</div>
+      {hasMore && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => setVisibleCount(v => v + LOAD_COUNT)}
+            className="px-8 py-2.5 border border-[#3d3d3d] text-[#999999] text-sm rounded-lg hover:text-[#c8ff00] transition-all"
+          >
+            더 보기 ({apps.length - visibleCount}개 남음)
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
